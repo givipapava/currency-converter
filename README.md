@@ -50,6 +50,7 @@ API available at `http://localhost:3000`
 ### Convert Currency
 `POST /currency/convert`
 
+**Request:**
 ```json
 {
   "from": "USD",
@@ -58,14 +59,68 @@ API available at `http://localhost:3000`
 }
 ```
 
+**Response:**
+```json
+{
+  "from": "USD",
+  "to": "EUR",
+  "amount": 100,
+  "convertedAmount": 86.26,
+  "rate": 0.8626,
+  "timestamp": "2025-09-01T14:09:11.977Z"
+}
+```
+
 ### Get Supported Currencies
 `GET /currency/supported`
+
+**Response:**
+```json
+{
+  "currencies": [
+    "AUD", "BGN", "CAD", "CHF", "CZK", "DKK", 
+    "EUR", "GBP", "HRK", "HUF", "JPY", "NOK", 
+    "PLN", "RON", "SEK", "TRY", "UAH", "USD"
+  ]
+}
+```
 
 ### Get Exchange Rates  
 `GET /currency/rates`
 
+**Response:**
+```json
+{
+  "rates": [
+    {
+      "from": "USD",
+      "to": "UAH",
+      "rate": 41.4903,
+      "lastUpdated": "2025-09-01T06:20:06.000Z"
+    },
+    {
+      "from": "EUR",
+      "to": "UAH", 
+      "rate": 48.771,
+      "lastUpdated": "2025-09-01T06:20:06.000Z"
+    }
+  ]
+}
+```
+
 ### Health Check
 `GET /health`
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-09-01T14:09:11.867Z",
+  "services": {
+    "redis": "healthy"
+  }
+}
+```
 
 ## Development
 
@@ -76,12 +131,56 @@ npm run test         # Tests
 npm run lint         # Linting
 ```
 
-## Testing
+## API Testing Examples
 
+### Basic Currency Conversion
 ```bash
+# USD to EUR
 curl -X POST http://localhost:3000/currency/convert \
   -H "Content-Type: application/json" \
   -d '{"from": "USD", "to": "EUR", "amount": 100}'
+
+# USD to Ukrainian Hryvnia  
+curl -X POST http://localhost:3000/currency/convert \
+  -H "Content-Type: application/json" \
+  -d '{"from": "USD", "to": "UAH", "amount": 50}'
+
+# Cross-currency conversion (EUR to GBP via UAH)
+curl -X POST http://localhost:3000/currency/convert \
+  -H "Content-Type: application/json" \
+  -d '{"from": "EUR", "to": "GBP", "amount": 200}'
+```
+
+### Get Available Information
+```bash
+# Health check
+curl http://localhost:3000/health
+
+# Supported currencies
+curl http://localhost:3000/currency/supported
+
+# Current exchange rates
+curl http://localhost:3000/currency/rates
+```
+
+### Error Testing
+```bash
+# Invalid currency code
+curl -X POST http://localhost:3000/currency/convert \
+  -H "Content-Type: application/json" \
+  -d '{"from": "INVALID", "to": "EUR", "amount": 100}'
+
+# Negative amount
+curl -X POST http://localhost:3000/currency/convert \
+  -H "Content-Type: application/json" \
+  -d '{"from": "USD", "to": "EUR", "amount": -50}'
+```
+
+### With Pretty Output (using jq)
+```bash
+curl -X POST http://localhost:3000/currency/convert \
+  -H "Content-Type: application/json" \
+  -d '{"from": "USD", "to": "EUR", "amount": 100}' | jq .
 ```
 
 ## Production
